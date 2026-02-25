@@ -1,18 +1,25 @@
+require("dotenv").config();
+
 const express = require("express");
 const mysql = require("mysql");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 
+
+
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ["http://localhost:5173", "https://watergate-repo-7ofd.vercel.app"]
+}));
 app.use(bodyParser.json());
 
 // MySQL connection
 const db = mysql.createConnection({
-    host: "localhost",     // or your DB host
-    user: "root",          // your MySQL username
-    password: "root", // your MySQL password
-    database: "watergate_user_data"
+    host: process.env.MYSQLHOST,
+    user: process.env.MYSQLUSER,
+    password: process.env.MYSQLPASSWORD,
+    database: process.env.MYSQLDATABASE,
+    port: process.env.MYSQLPORT
 });
 
 db.connect(err => {
@@ -97,5 +104,5 @@ app.post("/api/update_balances", (req, res) => {
   });
 });
 
-app.listen(5000, () => console.log("🚀 Server running on port 5000"));
+app.listen(8080, () => console.log("🚀 Server running on port 8080"));
 
