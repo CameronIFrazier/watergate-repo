@@ -11,6 +11,9 @@ const app = express();
 app.use(cors({
   origin: ["http://localhost:5173", "https://watergate-repo-7ofd.vercel.app"]
 }));
+app.options("*", cors({
+  origin: ["http://localhost:5173", "https://watergate-repo-7ofd.vercel.app"]
+}));
 app.use(bodyParser.json());
 
 // MySQL connection
