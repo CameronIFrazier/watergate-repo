@@ -40,7 +40,7 @@ function AccountScreen({ toHomeScreen, username }) {
   useEffect(() => {
     if (!username) return; // avoid running with null
     axios
-      .get(`http://localhost:5000/api/balance/${username}`)
+      .get(`https://watergate-repo-production.up.railway.app/api/balance/${username}`)
       .then((res) => {
         setCheckingBalance(res.data.checking_balance);
         setSavingsBalance(res.data.savings_balance);
@@ -55,7 +55,7 @@ const [error, setError] = useState(null);
     console.log("Clicked submit");
   try {
     // Step 1: Get the current balances
-    const res = await axios.get(`http://localhost:5000/api/balance/${username}`);
+    const res = await axios.get(`https://watergate-repo-production.up.railway.app/api/balance/${username}`);
     const { checking_balance, savings_balance } = res.data;
     let newCheckingBalance = 0;
     let newSavingsBalance = 0;
@@ -93,7 +93,7 @@ const [error, setError] = useState(null);
      
     setError(null); // clear any previous error
     // Step 2: Update the balances in the database
-    const updateRes = await axios.post("http://localhost:5000/api/update_balances", {
+    const updateRes = await axios.post("https://watergate-repo-production.up.railway.app/api/update_balances", {
       username,
       checking_balance: newCheckingBalance,
       savings_balance: newSavingsBalance,

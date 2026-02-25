@@ -69,7 +69,7 @@ const [loggedInUser, setLoggedInUser] = useState(null);
 
   const handleSubmit = async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/check-user/${username}`);
+      const res = await axios.get(`https://watergate-repo-production.up.railway.app/api/check-user/${username}`);
       if (res.data.exists) {
         toAccountScreen(username);
         
