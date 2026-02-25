@@ -42,8 +42,8 @@ function AccountScreen({ toHomeScreen, username }) {
     axios
       .get(`https://watergate-repo-production.up.railway.app/api/balance/${username}`)
       .then((res) => {
-        setCheckingBalance(res.data.checking_balance);
-        setSavingsBalance(res.data.savings_balance);
+        setCheckingBalance(parseFloat(res.data.checking_balance));
+setSavingsBalance(parseFloat(res.data.savings_balance));
       })
       .catch((err) => console.error(err));
   }, [username]); // runs when username changes
