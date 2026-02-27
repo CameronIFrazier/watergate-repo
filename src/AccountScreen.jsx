@@ -2,7 +2,7 @@ import "./AccountScreen.css";
 import "./AccountScreen.css";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-
+import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import SidebarIcon from "./assets/menu.png";
 //images
@@ -19,8 +19,11 @@ import greenCheckMark from "./assets/check.png";
 import piggyBank from "./assets/savings.png";
 import lightBulb from "./assets/light-bulb.png";
 import money from "./assets/money.png";
+
 //ml-auto pushes things as far right as possible within container
-function AccountScreen({ toHomeScreen, username }) {
+function AccountScreen({ toHomeScreen }) {
+  const { username } = useParams();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showMoneyOptions, setshowMoneyOptions] = useState(false);
   const [showAccount2, setShowAccount2] = useState(false);
@@ -40,70 +43,71 @@ function AccountScreen({ toHomeScreen, username }) {
   useEffect(() => {
     if (!username) return; // avoid running with null
     axios
-      .get(`https://watergate-repo-production.up.railway.app/api/balance/${username}`)
+      .get(
+        `https://watergate-repo-production.up.railway.app/api/balance/${username}`,
+      )
       .then((res) => {
         setCheckingBalance(parseFloat(res.data.checking_balance));
-setSavingsBalance(parseFloat(res.data.savings_balance));
+        setSavingsBalance(parseFloat(res.data.savings_balance));
       })
       .catch((err) => console.error(err));
   }, [username]); // runs when username changes
-const [error, setError] = useState(null);
+  const [error, setError] = useState(null);
 
- 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    console.log("Clicked submit");
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (!selectedTransaction) return setError("Please select a transaction type.");
+  if (!account1) return setError("Please select an account.");
+  if (selectedTransaction === "transfer" && !account2) return setError("Please select a second account.");
+  if (selectedTransaction === "transfer" && account1 === account2) return setError("Cannot transfer to the same account.");
+  if (transferAmount <= 0) return setError("Please enter a valid amount.");
+  if (isNaN(transferAmount)) return setError("Please enter a valid number.");
+
   try {
-    // Step 1: Get the current balances
     const res = await axios.get(`https://watergate-repo-production.up.railway.app/api/balance/${username}`);
-    const { checking_balance, savings_balance } = res.data;
-    let newCheckingBalance = 0;
-    let newSavingsBalance = 0;
-    if(selectedTransaction==="deposit"){
-      console.log("Deposit selected");
-      if (account1 === "Checkings") {
-        newCheckingBalance = checking_balance + transferAmount;
-        newSavingsBalance = savings_balance;
-      } else if (account1 === "Savings") {
-        newCheckingBalance = checking_balance;
-        newSavingsBalance = savings_balance + transferAmount;
-      }
-    } else if(selectedTransaction==="withdrawl"){
-      console.log("Withdrawl selected");
-      if (account1 === "Checkings") {
-        newCheckingBalance = checking_balance - transferAmount;
-        newSavingsBalance = savings_balance;
-      } else if (account1 === "Savings") {
-        newCheckingBalance = checking_balance;
-        newSavingsBalance = savings_balance - transferAmount;
-      }
-    } else if(selectedTransaction==="transfer"){
+    const checking_balance = parseFloat(res.data.checking_balance);
+    const savings_balance = parseFloat(res.data.savings_balance);
+
+    let newCheckingBalance = checking_balance;
+    let newSavingsBalance = savings_balance;
+
+    if (selectedTransaction === "deposit") {
+      if (account1 === "Checkings") newCheckingBalance += transferAmount;
+      else if (account1 === "Savings") newSavingsBalance += transferAmount;
+    } else if (selectedTransaction === "withdrawl") {
+      if (account1 === "Checkings") newCheckingBalance -= transferAmount;
+      else if (account1 === "Savings") newSavingsBalance -= transferAmount;
+    } else if (selectedTransaction === "transfer") {
       if (account1 === "Checkings" && account2 === "Savings") {
-     newCheckingBalance = checking_balance - transferAmount;
-     newSavingsBalance = savings_balance + transferAmount;
-  } else {
-      newCheckingBalance = checking_balance + transferAmount;
-      newSavingsBalance = savings_balance - transferAmount;
-  }
-}
- if (newCheckingBalance < 0 || newSavingsBalance < 0) {
-      setError("Insufficient funds");
-      return; // stop execution, do not update DB
+        newCheckingBalance -= transferAmount;
+        newSavingsBalance += transferAmount;
+      } else if (account1 === "Savings" && account2 === "Checkings") {
+        newSavingsBalance -= transferAmount;
+        newCheckingBalance += transferAmount;
+      }
     }
-     
-    setError(null); // clear any previous error
-    // Step 2: Update the balances in the database
-    const updateRes = await axios.post("https://watergate-repo-production.up.railway.app/api/update_balances", {
+
+    if (newCheckingBalance < 0 || newSavingsBalance < 0) {
+      return setError("Insufficient funds.");
+    }
+
+    setError(null);
+
+    await axios.post("https://watergate-repo-production.up.railway.app/api/update_balances", {
       username,
       checking_balance: newCheckingBalance,
       savings_balance: newSavingsBalance,
     });
 
-    console.log("Balances updated:", updateRes.data);
-
-    // Step 3: Update local state (UI) too
     setCheckingBalance(newCheckingBalance);
     setSavingsBalance(newSavingsBalance);
+    settransferAmount(0);
+    setselectedTransaction(null);
+    setaccount1(null);
+    setaccount2(null);
+    setShowAccount2(false);
+    setshowMoneyOptions(false);
 
   } catch (err) {
     console.error(err);
@@ -131,14 +135,14 @@ const [error, setError] = useState(null);
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
-              strokeWidth={1.5}
+              strokeWidth="1.5"
               stroke="currentColor"
               className="size-6 invert"
             >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
               />
             </svg>
 
@@ -157,7 +161,7 @@ const [error, setError] = useState(null);
               />
             </svg>
 
-            <header onClick={toHomeScreen} className="text-gray-200">
+            <header onClick={() => navigate("/")} className="text-gray-200">
               Sign out{" "}
             </header>
           </div>
@@ -244,11 +248,17 @@ const [error, setError] = useState(null);
                 />
 
                 <button
-                  type="button"
-                  className="bg-blue-700 text-white rounded p-1 text-sm "
-                >
-                  Transfer Money
-                </button>
+  type="button"
+  className="bg-blue-700 text-white rounded p-1 text-sm"
+  onClick={() => {
+    setshowMoneyOptions(true);
+    setselectedTransaction("transfer");
+    setShowAccount2(true);
+    setaccount1("Checkings");
+  }}
+>
+  Transfer Money
+</button>
                 <button
                   type="button"
                   className="bg-white text-blue rounded border p-1 text-sm "
@@ -278,11 +288,17 @@ const [error, setError] = useState(null);
                 />
 
                 <button
-                  type="button"
-                  className="bg-blue-700 text-white rounded p-1 text-sm "
-                >
-                  Transfer Money
-                </button>
+  type="button"
+  className="bg-blue-700 text-white rounded p-1 text-sm"
+  onClick={() => {
+    setshowMoneyOptions(true);
+    setselectedTransaction("transfer");
+    setShowAccount2(true);
+    setaccount1("Savings");
+  }}
+>
+  Transfer Money
+</button>
                 <button
                   type="button"
                   className="bg-white text-blue rounded border p-1 text-sm "
@@ -368,7 +384,8 @@ const [error, setError] = useState(null);
               />
 
               <p className="text w-[70%] pl-6">
-                See rates, properties and insights, and manage your mortgage{" "}
+                See rates, properties and insights, and manage your
+                mortgage{" "}
               </p>
               <img
                 src={rightArrow}
@@ -439,123 +456,139 @@ const [error, setError] = useState(null);
             </div>
           </div>
           {showMoneyOptions && (
-  <div className="flex flex-col bg-white w-full h-auto pt-4 pl-4 gap-4 rounded pb-4">
-    {/* Transaction type buttons */}
-    <div className="flex flex-row gap-4">
-      <button
-        type="button"
-        className={`bg-blue-700 text-white rounded p-1 text-sm transition-colors duration-500 ease-in-out ${
-          selectedTransaction === "deposit" ? "bg-green-600" : "hover:bg-green-600"
-        }`}
-        onClick={() => {
-          setShowAccount2(false);
-          setselectedTransaction("deposit");
-        }}
-      >
-        Deposit
-      </button>
+            <div className="flex flex-col bg-white w-full h-auto pt-4 pl-4 gap-4 rounded pb-4">
+              {/* Transaction type buttons */}
+              <div className="flex flex-row gap-4">
+                <button
+                  type="button"
+                  className={`bg-blue-700 text-white rounded p-1 text-sm transition-colors duration-500 ease-in-out ${
+                    selectedTransaction === "deposit"
+                      ? "bg-green-600"
+                      : "hover:bg-green-600"
+                  }`}
+                  onClick={() => {
+                    setShowAccount2(false);
+                    setselectedTransaction("deposit");
+                  }}
+                >
+                  Deposit
+                </button>
 
-      <button
-        type="button"
-        className={`bg-blue-700 text-white rounded p-1 text-sm transition-colors duration-500 ease-in-out ${
-          selectedTransaction === "withdrawl" ? "bg-green-600" : "hover:bg-green-600"
-        }`}
-        onClick={() => {
-          setShowAccount2(false);
-          setselectedTransaction("withdrawl");
-        }}
-      >
-        Withdraw
-      </button>
+                <button
+                  type="button"
+                  className={`bg-blue-700 text-white rounded p-1 text-sm transition-colors duration-500 ease-in-out ${
+                    selectedTransaction === "withdrawl"
+                      ? "bg-green-600"
+                      : "hover:bg-green-600"
+                  }`}
+                  onClick={() => {
+                    setShowAccount2(false);
+                    setselectedTransaction("withdrawl");
+                  }}
+                >
+                  Withdraw
+                </button>
 
-      <button
-        type="button"
-        className={`bg-blue-700 text-white rounded p-1 text-sm transition-colors duration-500 ease-in-out ${
-          selectedTransaction === "transfer" ? "bg-green-600" : "hover:bg-green-600"
-        }`}
-        onClick={() => {
-          setShowAccount2(true);
-          setselectedTransaction("transfer");
-        }}
-      >
-        Transfer
-      </button>
-    </div>
+                <button
+                  type="button"
+                  className={`bg-blue-700 text-white rounded p-1 text-sm transition-colors duration-500 ease-in-out ${
+                    selectedTransaction === "transfer"
+                      ? "bg-green-600"
+                      : "hover:bg-green-600"
+                  }`}
+                  onClick={() => {
+                    setShowAccount2(true);
+                    setselectedTransaction("transfer");
+                  }}
+                >
+                  Transfer
+                </button>
+              </div>
 
-    {/* Account 1 selection */}
-    <div className="flex flex-row gap-4 items-center">
-      <label>Choose account:</label>
-      <button
-        type="button"
-        className={`bg-blue-700 text-white rounded p-1 text-sm ${
-          account1 === "Checkings" ? "bg-green-600" : "hover:bg-green-600"
-        }`}
-        onClick={() => setaccount1("Checkings")}
-      >
-        Checkings
-      </button>
-      <button
-        type="button"
-        className={`bg-blue-700 text-white rounded p-1 text-sm ${
-          account1 === "Savings" ? "bg-green-600" : "hover:bg-green-600"
-        }`}
-        onClick={() => setaccount1("Savings")}
-      >
-        Savings
-      </button>
-    </div>
+              {/* Account 1 selection */}
+              <div className="flex flex-row gap-4 items-center">
+                <label>Choose account:</label>
+                <button
+                  type="button"
+                  className={`bg-blue-700 text-white rounded p-1 text-sm ${
+                    account1 === "Checkings"
+                      ? "bg-green-600"
+                      : "hover:bg-green-600"
+                  }`}
+                  onClick={() => setaccount1("Checkings")}
+                >
+                  Checkings
+                </button>
+                <button
+                  type="button"
+                  className={`bg-blue-700 text-white rounded p-1 text-sm ${
+                    account1 === "Savings"
+                      ? "bg-green-600"
+                      : "hover:bg-green-600"
+                  }`}
+                  onClick={() => setaccount1("Savings")}
+                >
+                  Savings
+                </button>
+              </div>
 
-    {/* Account 2 selection for transfer */}
-    {showAccount2 && (
-      <div className="flex flex-row gap-4 items-center">
-        <label>Choose account 2:</label>
-        <button
-          type="button"
-          className={`bg-blue-700 text-white rounded p-1 text-sm ${
-            account2 === "Checkings" ? "bg-green-600" : "hover:bg-green-600"
-          }`}
-          onClick={() => setaccount2("Checkings")}
-        >
-          Checkings
-        </button>
-        <button
-          type="button"
-          className={`bg-blue-700 text-white rounded p-1 text-sm ${
-            account2 === "Savings" ? "bg-green-600" : "hover:bg-green-600"
-          }`}
-          onClick={() => setaccount2("Savings")}
-        >
-          Savings
-        </button>
-      </div>
-    )}
+              {/* Account 2 selection for transfer */}
+              {showAccount2 && (
+                <div className="flex flex-row gap-4 items-center">
+                  <label>Choose account 2:</label>
+                  <button
+                    type="button"
+                    className={`bg-blue-700 text-white rounded p-1 text-sm ${
+                      account2 === "Checkings"
+                        ? "bg-green-600"
+                        : "hover:bg-green-600"
+                    }`}
+                    onClick={() => setaccount2("Checkings")}
+                  >
+                    Checkings
+                  </button>
+                  <button
+                    type="button"
+                    className={`bg-blue-700 text-white rounded p-1 text-sm ${
+                      account2 === "Savings"
+                        ? "bg-green-600"
+                        : "hover:bg-green-600"
+                    }`}
+                    onClick={() => setaccount2("Savings")}
+                  >
+                    Savings
+                  </button>
+                </div>
+              )}
 
-    {/* Amount input */}
-    <div className="flex flex-row gap-4 items-center">
-      <label>Amount:</label>
-      <input
-        type="number"
-        className="border rounded p-2 w-1/2"
-        placeholder="Enter amount"
-        value={transferAmount}
-        onChange={(e) => settransferAmount(Number(e.target.value))}
-      />
-    </div>
+              {/* Amount input */}
+              <div className="flex flex-row gap-4 items-center">
+                <label>Amount:</label>
+                <input
+                  type=""
+                  className="border rounded p-2 w-1/2"
+                  placeholder="Enter amount"
+                  value={transferAmount}
+                  onChange={(e) => {
+  const val = parseFloat(e.target.value);
+  settransferAmount(isNaN(val) ? 0 : val);
+}}
+                />
+              </div>
 
-    {/* Submit button */}
-    <button
-      type="button"
-      className="bg-blue-700 text-white rounded p-2 w-1/4 mt-2"
-      onClick={handleSubmit}
-    >
-      Submit
-    </button>
+              {/* Submit button */}
+              <button
+                type="button"
+                className="bg-blue-700 text-white rounded p-2 w-1/4 mt-2"
+                onClick={handleSubmit}
+              >
+                Submit
+              </button>
 
-    {/* Error display */}
-    {error && <p className="text-red-500 mt-2">{error}</p>}
-  </div>
-)}
-
+              {/* Error display */}
+              {error && <p className="text-red-500 mt-2">{error}</p>}
+            </div>
+          )}
         </div>
 
         {/* End Right side content can go here */}

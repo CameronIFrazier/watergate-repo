@@ -1,8 +1,10 @@
 import "./AccountCreatorScreen.css";
 import React, { useState } from "react";
 import logo from "./assets/Daco_117466.png";
+import { useNavigate } from "react-router-dom";
 
-function AccountCreatorScreen({ toHomeScreen }) {
+function AccountCreatorScreen() {
+  const navigate = useNavigate();
   const [selectedAccountType, setSelectedAccountType] = useState(null);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -30,7 +32,7 @@ function AccountCreatorScreen({ toHomeScreen }) {
       const data = await response.json();
       if (response.ok) {
         alert("✅ Account created with $300 bonus in checking!");
-        toHomeScreen();
+        navigate("/");
       } else {
         alert("❌ Error: " + data.error);
       }
@@ -96,7 +98,7 @@ function AccountCreatorScreen({ toHomeScreen }) {
             <button
               type="button"
               className="bg-blue-600 text-white rounded w-[30%]"
-              onClick={toHomeScreen}
+              onClick={() => navigate("/")}
             >
               Back to Home
             </button>
