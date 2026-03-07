@@ -6,7 +6,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 
 
-
+//fixing cors issues push
 const app = express();
 app.use(cors({
   origin: ["http://localhost:5173", "https://watergate-repo-7ofd.vercel.app"]
