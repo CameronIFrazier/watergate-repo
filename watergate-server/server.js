@@ -9,6 +9,7 @@ const app = express();
 
 const allowedOrigins = [
   "http://localhost:5173",
+  "https://watergate-repo.vercel.app",
   "https://watergate-repo-7ofd.vercel.app"
 ];
 
