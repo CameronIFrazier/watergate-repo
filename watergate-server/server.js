@@ -9,10 +9,14 @@ const app = express();
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://watergate-repo.vercel.app"
+  "https://watergate-repo-7ofd.vercel.app"
 ];
 
-app.use(cors({ origin: allowedOrigins }));
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
 app.options("*", cors({ origin: allowedOrigins }));
 app.use(bodyParser.json());
 
