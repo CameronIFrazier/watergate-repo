@@ -1,12 +1,18 @@
-# React + Vite
+Watergate : Full Stack Mock Banking App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A full stack banking demo built with React, Express, and MySQL. Users can create an account, sign in by username, and manage checking and savings balances through deposits, withdrawals, and transfers between accounts.
 
-Currently, two official plugins are available:
+Watergate is a fictional bank whose name I made up, and the website is based off of a version of the chase bank website as it looked at the time of the app creation. The app does not handle real money or real financial data.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Live demo: https://watergate-repo.vercel.app
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Features
+Bank-style landing page with promo carousels, featured cards, and product sections (checking, credit cards, auto, business)
+Account creation: pick an account type and register with a first name, last name, and username
+Username sign-in that looks the user up in the database before routing to their dashboard
+Account dashboard that shows live checking and savings balances
+Transactions:
+Deposit to or withdraw from checking or savings
+Transfer between checking and savings
+Validation for empty fields, same-account transfers, non-numeric or negative amounts, and insufficient funds
+Client-side routing with React Router (/, /create-account, /account/:username)
