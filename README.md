@@ -4,7 +4,7 @@ A full stack banking demo built with React, Express, and MySQL. Users can create
 
 Watergate is a fictional bank whose name I made up, and the website is based off of a version of the chase bank website as it looked at the time of the app creation. The app does not handle real money or real financial data.
 
-Live demo: https://watergate-repo.vercel.app
+Website: https://watergate-repo.vercel.app
 
 Features
 Bank-style landing page with promo carousels, featured cards, and product sections (checking, credit cards, auto, business)
