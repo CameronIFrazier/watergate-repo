@@ -25,7 +25,7 @@ Backend	Node.js, Express, mysql2 (connection pool)
 Database	MySQL (hosted on Railway)
 Hosting	Vercel (frontend), Railway (API + DB)
 Architecture
-React (Vercel)  ──HTTPS──▶  Express API (Railway)  ──▶  MySQL (Railway)
+React (Vercel)  ──HTTPS──>  Express API (Railway)  ──>  MySQL (Railway)
 
 The API uses a MySQL connection pool with keep-alive enabled so Railway doesn't drop idle connections. CORS is restricted to the local dev server and the Vercel deployments.
 
